@@ -2,12 +2,16 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define HEAP_SIZE 100
+
 /* --------------------------------------------------------------- */
 /*                   Cheney's Copying Algorithm                    */
 /* --------------------------------------------------------------- */
 
+static ROOTS[HEAP_SIZE]; 
+
 /*  Assumptions: */
-//  Same sized objects (though this is not a requirement)
+/* Same sized objects (though this is not a requirement) */
 
 /*  A heap object. */
 typedef struct object {
