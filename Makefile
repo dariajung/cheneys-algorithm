@@ -1,26 +1,20 @@
-# Makefile for test driver
-CC=gcc
-CFLAGS=-Wall -g
+C  = gcc
+CXX = g++
 
-EXE=cheney
-OBJS=cheney.o
+CFLAGS   = -g -Wall  $(INCLUDES)
+CXXFLAGS = -g -Wall $(INCLUDES)
 
-HEADER=cheney.h
+LDFLAGS = -g
 
-.PHONY: compile clean distclean 
-compile: $(EXE)
+.PHONY: default
+default: cheney
 
-$(EXE): $(OBJS)
+# header dependency
+cheney.o: cheney.c
 
-$(OBJS): $(HEADER)
-
-run: compile 
-	./$(EXE)
-
-cheney: cheney.c
-	$(CC) $(CFLAGS) $< -o $@
-
+.PHONY: clean
 clean:
-	rm -rf $(EXE) $(OBJS) core* cheney
+	rm -f *.o *~ a.out core cheney
 
-distclean: clean
+.PHONY: all
+all: clean default

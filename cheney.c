@@ -3,15 +3,11 @@
 #include <assert.h>
 #include "cheney.h"
 
-#define HEAP_SIZE 100
-
 /* --------------------------------------------------------------- */
 /*                   Cheney's Copying Algorithm                    */
 /* --------------------------------------------------------------- */
 
-
-/* Initializes the heap, takes a pointer to struct heap */
-void init_heap(HEAP *heap);
+OBJECT * root;
 
 /* Creates an OBJECT on the heap and returns a pointer to it,
 neither value nor (cdr, car) are set. A "null" value? Unclear how

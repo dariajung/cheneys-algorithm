@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include "cheney_data_structures.h"
+
+#define HEAP_SIZE 100
 
 /* ------------ HIDE FROM USER -------------- */ 
 
@@ -15,45 +18,6 @@ grey - Self visited, but not descendents; nodes in work list in tospace
 white - Unvisited, at the end of tracing, considered garbage 
 
 */
-
-/*  A heap object. */
-typedef struct object {
-
-    /* 0 for unforwarded, 1 for forwarded */
-    unsigned char is_forwarded;
-
-    /* 0 for integer, 1 for cons */
-    unsigned char type;
-
-    /* Object on the heap is either an int, or a cons cell */
-    union {
-        int value;
-
-        struct {
-
-            /* 
-
-            Any slot in a fromspace object can be used as 
-            a forwarding address, so we can store the forwarding pointer
-            in either *car or *cdr because its data has been copied somewhere else
-
-            */
-
-            struct object *car_forwarding;
-            struct object *cdr;
-        };
-    };
-
-} OBJECT;
-
-OBJECT * root;
-
-/* A semispace of the heap. */
-typedef struct semispace {
-    intptr_t top;
-    intptr_t end;
-
-} SEMISPACE;
 
 /* The heap itself, broken into two semi-spaces. */
 typedef struct heap {
@@ -78,6 +42,9 @@ typedef struct heap {
     from-space have been copied */
 
 } HEAP;
+
+/* Initializes the heap, takes a pointer to struct heap */
+void init_heap(HEAP *heap);
 
 /* Creates an object on the heap, does not set value */
 OBJECT * create_heap_object();
@@ -113,4 +80,3 @@ static void copy(OBJECT * p);
 /* Sets forwarding address. Will be called from copy */
 static OBJECT * set_forwarding_address(OBJECT * obj, OBJECT * alloc_pointer);
 
-/* ---------- END HIDE FROM USER -------------- */
