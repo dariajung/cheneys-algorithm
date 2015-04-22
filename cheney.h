@@ -5,6 +5,8 @@
 
 #define HEAP_SIZE 100
 
+static HEAP *heap;
+
 /* ------------ HIDE FROM USER -------------- */ 
 
 /*  Assumptions: */
@@ -19,44 +21,32 @@ white - Unvisited, at the end of tracing, considered garbage
 
 */
 
-/* The heap itself, broken into two semi-spaces. */
-typedef struct heap {
-    SEMISPACE from_space;
-    SEMISPACE to_space;
-
-    /* 
-        Pointer used to linearly step through to-space objects
-        A first in, first out queue of work list objects / grey nodes
-        Trace a node's children only when the scan pointer reaches it in the queue
-        After an object is copied from from-space to to-space, increment scan pointer
-     */
-    OBJECT * scan;
-
-    /* The allocation pointer, points to the next free spot */
-    OBJECT * _free;
-
-    /* size of semispace in bytes */
-    size_t size_semi;
-
-    /* NOTE: When scan pointer reaches _free pointer, all objects from
-    from-space have been copied */
-
-} HEAP;
-
 /* Initializes the heap, takes a pointer to struct heap */
-void init_heap(HEAP *heap);
+void init_heap(HEAP *heap) {
+    void *temp_top, *temp_end;
+    size_t space_size;
 
-/* Creates an object on the heap, does not set value */
-OBJECT * create_heap_object();
+    temp_top = malloc(sizeof(OBJECT) * HEAP_SIZE);
+    temp_end = temp_top + sizeof(OBJECT) * HEAP_SIZE;
 
-/* Set forwarding address from from_space to to_space */
-static void forward_to(intptr_t address);
+    space_size = (temp_end - temp_top) / 2.0;
 
-/* flip semispaces */
-static void flip_spaces();
+    heap->size_semi = space_size;
+    heap->scan = NULL;
+    heap->_free = temp_top;
+
+    // from space is the initially used semi-heap
+    heap->from_space.top = temp_top;
+    heap->from_space.end = temp_top + space_size;
+
+    // on "reserve" until from space no longer has memory
+    heap->to_space.top = temp_top + space_size;
+    heap->to_space.end = temp_end;
+}
 
 /* trace from the root */
-static void trace();
+/* Actually is this even necessary tho */
+/* static void trace(); */
 
 /* collected un-traced/white objects */
 /* collect pseudocode:
@@ -69,10 +59,40 @@ static void trace();
                 p = copy(p)
             scan += sizeof(scan);
 */
-static void collect();
+static void collect() {
+
+}
+
+static void * cheney_allocate(size_t size) {
+    void * tmp;
+    tmp = NULL;
+
+    // also check if there is no room at all?
+
+    if (heap->_free >= heap->from_space.end) {
+        printf("Free pointer is past the from space semi heap's boundaries\n Calling collect.\n");
+        // call collect, and then try allocating again
+        collect();
+        cheney_allocate(size);
+    // otherwise, allocate heap object where free pointer points
+    } else {
+        tmp = heap->_free;
+        heap->_free += size;
+    }
+
+    return tmp;
+}
+
+/* Set forwarding address from from_space to to_space */
+static void forward_to(void * address);
+
+/* flip semispaces */
+static void flip_spaces();
 
 /* Given a size of the object to allocate, finds a free spot in from_space */
-static intptr_t cheney_allocate(size_t size);
+/* Check where the free pointer is, and if it's >= the limit of a heap, need
+    to call collector */
+/* Does it make sense to pass the whole heap? */
 
 /* Copy contents of object from from_space to to_space; use memcpy? */
 static void copy(OBJECT * p);

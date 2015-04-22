@@ -14,9 +14,25 @@ neither value nor (cdr, car) are set. A "null" value? Unclear how
 to represent. */
 OBJECT * create_nil();
 
-OBJECT * create_integer(int value);
+OBJECT * create_integer(int value) {
+    OBJECT * obj;
+    obj = (OBJECT *) cheney_allocate(sizeof(OBJECT));
 
-OBJECT * create_cons(OBJECT * car, OBJECT * cdr);
+    // allocate failed
+    if (!obj) {
+        return NULL;
+    }
+
+    obj->is_forwarded = 0;
+    obj->type = 0;
+    obj->value = value;
+
+    return obj;
+}
+
+OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
+
+}
 
 int main() {
     return 0;

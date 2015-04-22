@@ -42,7 +42,32 @@ typedef struct object {
 
 /* A semispace of the heap. */
 typedef struct semispace {
-    intptr_t top;
-    intptr_t end;
+    void * top;
+    void * end;
 
 } SEMISPACE;
+
+
+/* The heap itself, broken into two semi-spaces. */
+typedef struct heap {
+    SEMISPACE from_space;
+    SEMISPACE to_space;
+
+    /* 
+        Pointer used to linearly step through to-space objects
+        A first in, first out queue of work list objects / grey nodes
+        Trace a node's children only when the scan pointer reaches it in the queue
+        After an object is copied from from-space to to-space, increment scan pointer
+     */
+    void * scan;
+
+    /* The allocation pointer, points to the next free address/spot */
+    void * _free;
+
+    /* size of semispace in bytes */
+    size_t size_semi;
+
+    /* NOTE: When scan pointer reaches _free pointer, all objects from
+    from-space have been copied */
+
+} HEAP;
