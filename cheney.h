@@ -7,6 +7,7 @@
 #define HEAP_SIZE 100
 
 static HEAP *heap;
+OBJECT * root;
 
 /* ------------ HIDE FROM USER -------------- */ 
 
@@ -49,6 +50,57 @@ void init_heap() {
     heap->to_space.end = temp_end;
 }
 
+/* flip semispaces */
+static void flip_spaces() {
+    void * tmp;
+
+    tmp = heap->from_space.top;
+
+    heap->from_space.top = heap->to_space.top;
+    heap->from_space.end = heap->to_space.top + heap->size_semi;
+
+    heap->to_space.top = tmp;
+    heap->to_space.end = tmp + heap->size_semi;
+}
+
+/* Set forwarding address from from_space to to_space */
+static void forward_to(void * address, OBJECT *obj) {
+    obj->is_forwarded = 1;
+    obj->car_forwarding = address;
+}
+
+/* Copy contents of object from from_space to to_space; use memcpy? */
+/* Copy pseudocode:
+    if is_forwarded(p):
+        return get_forwarding_pointer(p)
+    else:
+        memcpy(p, alloc_pointer)
+        new_address = alloc_pointer
+        forwarding_address = alloc_pointer
+        set_forwarding_address(p, alloc_pointer)
+        alloc_pointer = alloc_pointer + size(p)
+        return forwarding_address
+*/
+static void * copy(OBJECT * p) {
+    void *new_address, *forwarding_address;
+    new_address = NULL;
+    forwarding_address = NULL;
+
+    if (p->is_forwarded) {
+        return (p->car_forwarding);
+    } else {
+        // dest, src, size
+        memcpy(heap->_free, p, sizeof(OBJECT));
+        new_address = heap->_free;
+        forwarding_address = heap->_free;
+        forward_to(heap->_free, p);
+        heap->_free += sizeof(OBJECT);
+        return forwarding_address;
+    }
+
+    return forwarding_address;
+}
+
 /* trace from the root */
 /* Actually is this even necessary tho */
 /* static void trace(); */
@@ -65,9 +117,27 @@ void init_heap() {
             scan += sizeof(scan);
 */
 static void collect() {
+    void * p;
+
+    flip_spaces();
+    heap->_free = heap->to_space.top;
+    heap->scan = heap->to_space.top;
+    root = copy(root);
+    while (heap->scan < heap->_free) {
+        for (p = heap->scan; p <= (heap->to_space.end); p += sizeof(OBJECT)) {
+            // if object there exists, copy it over
+            if ((OBJECT *)p) {
+                p = copy(p);
+            }
+        }
+    }
 
 }
 
+/* Given a size of the object to allocate, finds a free spot in from_space */
+/* Check where the free pointer is, and if it's >= the limit of a heap, need
+    to call collector */
+/* Does it make sense to pass the whole heap? */
 static void * cheney_allocate(size_t size) {
     void * tmp;
     tmp = NULL;
@@ -88,31 +158,4 @@ static void * cheney_allocate(size_t size) {
 
     return tmp;
 }
-
-/* Set forwarding address from from_space to to_space */
-static void forward_to(void * address);
-
-/* flip semispaces */
-static void flip_spaces() {
-    void * tmp;
-
-    tmp = heap->from_space.top;
-
-    heap->from_space.top = heap->to_space.top;
-    heap->from_space.end = heap->to_space.top + heap->size_semi;
-
-    heap->to_space.top = tmp;
-    heap->to_space.end = tmp + heap->size_semi;
-}
-
-/* Given a size of the object to allocate, finds a free spot in from_space */
-/* Check where the free pointer is, and if it's >= the limit of a heap, need
-    to call collector */
-/* Does it make sense to pass the whole heap? */
-
-/* Copy contents of object from from_space to to_space; use memcpy? */
-static void copy(OBJECT * p);
-
-/* Sets forwarding address. Will be called from copy */
-static OBJECT * set_forwarding_address(OBJECT * obj, OBJECT * alloc_pointer);
 

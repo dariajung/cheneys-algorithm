@@ -7,8 +7,6 @@
 /*                   Cheney's Copying Algorithm                    */
 /* --------------------------------------------------------------- */
 
-OBJECT * root;
-
 /* Creates an OBJECT on the heap and returns a pointer to it,
 neither value nor (cdr, car) are set. A "null" value? Unclear how
 to represent. */
