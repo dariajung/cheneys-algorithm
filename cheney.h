@@ -43,7 +43,7 @@ void init_heap() {
 
     heap->size_semi = half_space;
     heap->scan = NULL;
-    heap->_free = temp_top;
+    heap->_free = NULL;
 
     // from space is the initially used semi-heap
     heap->from_space.top = temp_top;
