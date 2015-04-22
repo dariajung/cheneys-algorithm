@@ -123,9 +123,8 @@ static void * copy(OBJECT * p) {
 static void collect() {
     void * p;
 
-    flip_spaces();
     heap->_free = heap->to_space.top;
-    heap->scan = heap->to_space.top;
+    heap->scan = heap->_free;
     root = copy(root);
     while (heap->scan < heap->_free) {
         for (p = heap->scan; p <= (heap->to_space.end); p += sizeof(OBJECT)) {
@@ -136,6 +135,8 @@ static void collect() {
         }
     }
 
+    // everything has been copied over so flip semi-spaces
+    flip_spaces();
 }
 
 /* Given a size of the object to allocate, finds a free spot in from_space */
@@ -153,7 +154,13 @@ static void * cheney_allocate(size_t size) {
         // call collect, and then try allocating again
         collect();
         printf("After collection\n");
-        cheney_allocate(size);
+        // check if there is no room even after collection
+        if (heap->_free >= heap->from_space.end) {
+            return tmp;
+        }
+        else {
+            cheney_allocate(size);
+        }
     // otherwise, allocate heap object where free pointer points
     } else {
         tmp = heap->_free;
