@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "cheney_data_structures.h"
 
 #define HEAP_SIZE 100
@@ -22,25 +23,29 @@ white - Unvisited, at the end of tracing, considered garbage
 */
 
 /* Initializes the heap, takes a pointer to struct heap */
-void init_heap(HEAP *heap) {
+void init_heap() {
     void *temp_top, *temp_end;
-    size_t space_size;
+    size_t total_space, half_space;
 
-    temp_top = malloc(sizeof(OBJECT) * HEAP_SIZE);
-    temp_end = temp_top + sizeof(OBJECT) * HEAP_SIZE;
+    total_space = sizeof(OBJECT) * HEAP_SIZE;
 
-    space_size = (temp_end - temp_top) / 2.0;
+    temp_top = malloc(total_space);
+    memset(temp_top, 0, total_space);
 
-    heap->size_semi = space_size;
+    temp_end = temp_top + total_space;
+
+    half_space = (temp_end - temp_top) / 2.0;
+
+    heap->size_semi = half_space;
     heap->scan = NULL;
     heap->_free = temp_top;
 
     // from space is the initially used semi-heap
     heap->from_space.top = temp_top;
-    heap->from_space.end = temp_top + space_size;
+    heap->from_space.end = temp_top + half_space;
 
     // on "reserve" until from space no longer has memory
-    heap->to_space.top = temp_top + space_size;
+    heap->to_space.top = temp_top + half_space;
     heap->to_space.end = temp_end;
 }
 
@@ -73,6 +78,7 @@ static void * cheney_allocate(size_t size) {
         printf("Free pointer is past the from space semi heap's boundaries\n Calling collect.\n");
         // call collect, and then try allocating again
         collect();
+        printf("After collection\n");
         cheney_allocate(size);
     // otherwise, allocate heap object where free pointer points
     } else {
@@ -87,7 +93,17 @@ static void * cheney_allocate(size_t size) {
 static void forward_to(void * address);
 
 /* flip semispaces */
-static void flip_spaces();
+static void flip_spaces() {
+    void * tmp;
+
+    tmp = heap->from_space.top;
+
+    heap->from_space.top = heap->to_space.top;
+    heap->from_space.end = heap->to_space.top + heap->size_semi;
+
+    heap->to_space.top = tmp;
+    heap->to_space.end = tmp + heap->size_semi;
+}
 
 /* Given a size of the object to allocate, finds a free spot in from_space */
 /* Check where the free pointer is, and if it's >= the limit of a heap, need

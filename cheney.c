@@ -31,10 +31,25 @@ OBJECT * create_integer(int value) {
 }
 
 OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
+    OBJECT * obj;
+    obj = (OBJECT *) cheney_allocate(sizeof(OBJECT));
 
+    // allocate failed
+    if (!obj) {
+        return NULL;
+    }
+
+    obj->is_forwarded = 0;
+    obj->type = 1;
+    obj->car_forwarding = car;
+    obj->cdr = cdr;
+
+    return obj;
 }
 
 int main() {
+    init_heap();
+
     return 0;
 }
 
