@@ -10,14 +10,16 @@ white - Unvisited, at the end of tracing, considered garbage
 
 */
 
+typedef enum {NIL, INT, CONS} type_t;
+
 /*  A heap object. */
 typedef struct object {
 
     /* 0 for unforwarded, 1 for forwarded */
     unsigned char is_forwarded;
 
-    /* 0 for integer, 1 for cons */
-    unsigned char type;
+    /* NIL, INT, CONS */
+    type_t type;
 
     /* Object on the heap is either an int, or a cons cell */
     union {

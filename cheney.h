@@ -25,15 +25,19 @@ white - Unvisited, at the end of tracing, considered garbage
 
 /* Initializes the heap, takes a pointer to struct heap */
 void init_heap() {
-    void *temp_top, *temp_end;
+    void *temp_top, *temp_end, *i;
     size_t total_space, half_space;
 
     total_space = sizeof(OBJECT) * HEAP_SIZE;
 
     temp_top = malloc(total_space);
     memset(temp_top, 0, total_space);
-
     temp_end = temp_top + total_space;
+
+    // set everything to NULL
+    for (i = temp_top; i <= temp_end; i += sizeof(OBJECT)) {
+        i = NULL;
+    }
 
     half_space = (temp_end - temp_top) / 2.0;
 
