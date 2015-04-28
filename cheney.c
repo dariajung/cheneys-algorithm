@@ -3,13 +3,15 @@
 #include <assert.h>
 #include "cheney.h"
 
+#define NIL NULL
+
 /* --------------------------------------------------------------- */
 /*                   Cheney's Copying Algorithm                    */
 /* --------------------------------------------------------------- */
 
 /* Creates an OBJECT on the heap and returns a pointer to it,
 neither value nor (cdr, car) are set. A "null" value? Unclear how
-to represent. */
+to represent. 
 OBJECT * create_nil() {
     OBJECT * obj;
     obj = (OBJECT *) cheney_allocate(sizeof(OBJECT));
@@ -23,8 +25,9 @@ OBJECT * create_nil() {
     obj->type = NIL;
 
     return obj;
-
 }
+
+*/
 
 OBJECT * create_integer(int value) {
     OBJECT * obj;

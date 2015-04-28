@@ -6,15 +6,21 @@ CXXFLAGS = -g -Wall $(INCLUDES)
 
 LDFLAGS = -g
 
-.PHONY: default
-default: cheney
+# .PHONY: default
+# default: cheney
 
 # header dependency
-cheney.o: cheney.c
-
-.PHONY: clean
-clean:
-	rm -f *.o *~ a.out core cheney
+# cheney.o: cheney.c
 
 .PHONY: all
-all: clean default
+
+all: cheney slist
+
+cheney: 
+	gcc -Wall -o cheney cheney.c
+
+slist:
+	gcc -Wall -o slist slist.c
+
+clean:
+	rm -f *.o *~ a.out core cheney slist

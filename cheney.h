@@ -3,13 +3,12 @@
 #include <assert.h>
 #include <string.h>
 #include "cheney_data_structures.h"
+#include "slist.h"
 
 #define HEAP_SIZE 100
 
 static HEAP *heap;
-OBJECT * root;
-
-/* ------------ HIDE FROM USER -------------- */ 
+OBJECT * root; // this needs to be figured out; a linked list or an array, idk
 
 /*  Assumptions: */
 /*  Same sized objects (though this is not a requirement) */
@@ -104,6 +103,8 @@ static void * copy(OBJECT * p) {
 
     return forwarding_address;
 }
+
+// linked list of children
 
 /* trace from the root */
 /* Actually is this even necessary tho */
