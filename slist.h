@@ -83,6 +83,8 @@ typedef struct _SListEntry SListEntry;
  * Structure used to iterate over a list.
  */
 
+ /* A singly-linked list */
+
 typedef struct _SListIterator SListIterator;
 
 /**
@@ -98,6 +100,11 @@ typedef void *SListValue;
 struct _SListIterator {
 	SListEntry **prev_next;
 	SListEntry *current;
+};
+
+struct _SListEntry {
+    SListValue data; // void *
+    SListEntry *next;
 };
 
 /**

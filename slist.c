@@ -28,12 +28,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "alloc-testing.h"
 #endif
 
-/* A singly-linked list */
-
-struct _SListEntry {
-	SListValue data; // void *
-	SListEntry *next;
-};
 
 void slist_free(SListEntry *list)
 {

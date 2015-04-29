@@ -32,8 +32,10 @@ white - Unvisited, at the end of tracing, considered garbage
 void init_heap() {
     printf("Initializing heap.\n");
 
+    root_list = malloc(sizeof(SListEntry));
+    root_iter = malloc(sizeof(SListIterator));
+
     root_list = NULL;
-    root_iter = NULL;
     slist_iterate(&root_list, root_iter);
 
     heap = malloc(sizeof(HEAP));
@@ -231,6 +233,9 @@ static void * cheney_allocate(size_t size) {
 }
 
 static void cleanup() {
+    slist_free(root_list);
+    //free(root_list);
+    free(root_iter);
     free(heap->memory_block_start);
     free(heap);
     printf("Cleanup\n");
