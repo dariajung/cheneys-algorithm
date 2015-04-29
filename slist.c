@@ -31,7 +31,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 /* A singly-linked list */
 
 struct _SListEntry {
-	SListValue data;
+	SListValue data; // void *
 	SListEntry *next;
 };
 

@@ -10,7 +10,7 @@ white - Unvisited, at the end of tracing, considered garbage
 
 */
 
-typedef enum {NIL, INT, CONS} type_t;
+typedef enum {INT, CONS} type_t;
 
 /*  A heap object. */
 typedef struct object {
@@ -18,8 +18,8 @@ typedef struct object {
     /* 0 for unforwarded, 1 for forwarded */
     unsigned char is_forwarded;
 
-    /* NIL, INT, CONS */
-    type_t type;
+    /* 0 for INT, 1 for CONS */
+    unsigned char _type;
 
     /* Object on the heap is either an int, or a cons cell */
     union {
@@ -53,7 +53,7 @@ typedef struct semispace {
 /* The heap itself, broken into two semi-spaces. */
 typedef struct heap {
     // only for cleaning up purposes to free the memory at cleanup
-    void * memory_block;
+    void * memory_block_start;
 
     SEMISPACE from_space;
     SEMISPACE to_space;

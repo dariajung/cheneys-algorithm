@@ -42,7 +42,7 @@ void init_heap() {
     // sanity check
     assert(half_space == ((sizeof(OBJECT) * HEAP_SIZE) / 2.0 ));
 
-    heap->memory_block = temp_top;
+    heap->memory_block_start = temp_top;
     heap->size_semi = half_space;
     heap->scan = NULL;
     heap->_free = NULL;
@@ -115,7 +115,25 @@ static void * copy(OBJECT * p) {
     return forwarding_address;
 }
 
-// linked list of children
+// return a linked list of children of heap object
+static SListEntry * children(void * obj, SListEntry * list) {
+    
+    // NULL object
+    if (!obj) {
+        return list;
+
+    } else if (((OBJECT *)obj)->_type == 0) {
+        return slist_append(&list, obj);
+
+    } else if (((OBJECT *)obj)->_type == 1) {
+        slist_append(&list, obj);
+        children((void *)((OBJECT *)obj)->car_forwarding, list);
+        children((void *)((OBJECT *)obj)->cdr, list);
+    }
+
+    return list;
+
+}
 
 
 /* USER should call collect */
@@ -182,7 +200,7 @@ static void * cheney_allocate(size_t size) {
 }
 
 static void cleanup() {
-    free(heap->memory_block);
+    free(heap->memory_block_start);
     free(heap);
-    printf("Allocated memory freed\n");
+    printf("Cleanup\n");
 }

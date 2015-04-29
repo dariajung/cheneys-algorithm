@@ -40,7 +40,7 @@ OBJECT * create_integer(int value) {
     }
 
     obj->is_forwarded = 0;
-    obj->type = INT;
+    obj->_type = 0;
     obj->value = value;
 
     return obj;
@@ -57,7 +57,7 @@ OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
     }
 
     obj->is_forwarded = 0;
-    obj->type = CONS;
+    obj->_type = 1;
     obj->car_forwarding = car;
     obj->cdr = cdr;
 
@@ -66,6 +66,8 @@ OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
 
 int main() {
     init_heap();
+
+
 
     cleanup();
     return 0;
