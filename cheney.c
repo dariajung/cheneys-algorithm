@@ -67,10 +67,11 @@ OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
 // make sure all children are correctly found
 void test_children() {
     OBJECT *test1, *test2, *test3, *test4;
-    SListEntry *list, *tmp; // should this list be malloc'd?
+    SListValue *tmp;
+    SListEntry *list; // should this list be malloc'd?
     SListIterator *iter;
 
-    tmp = malloc(sizeof(SListEntry));
+    tmp = NULL;
     list = malloc(sizeof(SListEntry));
     iter = malloc(sizeof(SListIterator));
 
@@ -91,7 +92,7 @@ void test_children() {
         7, 8, [7, 8], [[_, _], NIL], NIL
     */
 
-    list = children((void *)test4, list);
+    children((void *)test4, list);
 
     printf("Length of list %d\n", slist_length(list));
 
@@ -99,14 +100,27 @@ void test_children() {
         printf("hello\n");
         // returns data of node
         tmp = slist_iter_next(iter);
-        printf("goodbye\n");
-
         if (tmp) {
-            slist_data(tmp);
-        } else {
-            printf("Null value\n");
+            printf("i dunno %d\n", ((OBJECT *)tmp)->_type);
         }
+
+        // if (tmp) {
+        //     printf("lolcats\n");
+        //     printf("address %p\n", (OBJECT *)slist_data(tmp));
+
+        //     printf("lolcats2\n");
+        //     printf("INSIDE CHILDREN_TEST %p\n", data);
+
+        //     // if (((OBJECT *)data)->_type) {
+        //     //     printf("final lolz\n");
+        //     //     //if (data->_type) {
+        //     //     //printf("lolcats the final\n");
+        //     //     //}
+        //     // }
+        // }
     }
+
+    printf("goodbye\n");
 
 }
 

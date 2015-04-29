@@ -130,7 +130,8 @@ static void * copy(OBJECT * p) {
 
 // return a linked list of children of heap object
 static SListEntry * children(void * obj, SListEntry * list) {
-    
+    SListEntry *tmp;
+    tmp = NULL;
     printf("Inside children\n");
 
     // NULL object
@@ -138,9 +139,16 @@ static SListEntry * children(void * obj, SListEntry * list) {
         return list;
 
     } else if (((OBJECT *)obj)->_type == 0) {
-        return slist_append(&list, obj);
+        printf("INTEGER %p\n", obj);
+        tmp = slist_append(&list, obj);
+        if (tmp) {
+            printf("Data added %d\n", ((OBJECT *)(tmp->data))->value);
+        }
+
+        return tmp;
 
     } else if (((OBJECT *)obj)->_type == 1) {
+        printf("CONS CELL: %p\n", obj);
         slist_append(&list, obj);
         children((void *)((OBJECT *)obj)->car_forwarding, list);
         children((void *)((OBJECT *)obj)->cdr, list);
