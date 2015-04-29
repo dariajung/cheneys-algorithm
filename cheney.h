@@ -35,6 +35,9 @@ void init_heap() {
     root_list = malloc(sizeof(SListEntry));
     root_iter = malloc(sizeof(SListIterator));
 
+    memset((void *)root_list, 0, sizeof(SListEntry));
+    memset((void *)root_iter, 0, sizeof(SListIterator));
+
     //root_list = NULL;
     slist_iterate(&root_list, root_iter);
 
@@ -144,12 +147,12 @@ static SListEntry * children(void * obj, SListEntry * list) {
         if (tmp) {
             printf("Data added %d\n", ((OBJECT *)(tmp->data))->value);
         }
-
-        return tmp;
+        return list;
 
     } else if (((OBJECT *)obj)->_type == 1) {
         printf("CONS CELL: %p\n", obj);
         slist_append(&list, obj);
+        printf("AFTERWARDS\n");
         children((void *)((OBJECT *)obj)->car_forwarding, list);
         children((void *)((OBJECT *)obj)->cdr, list);
     }

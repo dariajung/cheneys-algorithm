@@ -72,8 +72,12 @@ void test_children() {
     SListIterator *iter;
 
     tmp = NULL;
+
     list = malloc(sizeof(SListEntry));
     iter = malloc(sizeof(SListIterator));
+
+    memset((void *)list, 0, sizeof(SListEntry));
+    memset((void *)iter, 0, sizeof(SListIterator));
 
     slist_iterate(&list, iter);
 
@@ -108,6 +112,9 @@ void test_children() {
             }
         }
     }
+
+    slist_free(list);
+    free(iter);
 
     printf("goodbye\n");
 
