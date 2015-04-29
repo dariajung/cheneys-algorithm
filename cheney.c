@@ -64,6 +64,19 @@ OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
     return obj;
 }
 
+void test_correct_response() {
+    OBJECT *test1, *test2, *test3, *test4, *test5, *test6;
+    test1 = create_integer(7);
+    test2 = create_integer(8);
+    test3 = create_cons(test1, test2);
+    test4 = create_cons(test3, NIL);
+    test5 = create_integer(18);
+    
+    test6 = create_integer(2);
+
+    assert(test6 == NULL);
+}
+
 // make sure all children are correctly found
 void test_children() {
     OBJECT *test1, *test2, *test3, *test4;
@@ -84,7 +97,7 @@ void test_children() {
     test1 = create_integer(7);
     test2 = create_integer(8);
     test3 = create_cons(test1, test2);
-    test4 = create_cons(test3, NULL);
+    test4 = create_cons(test3, NIL);
 
     /* 
         7
@@ -124,7 +137,9 @@ int main() {
 
     init_heap();
 
-    test_children();
+    //test_children();
+    test_correct_response();
+
     cleanup();
     return 0;
 }
