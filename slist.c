@@ -496,7 +496,3 @@ void slist_iter_remove(SListIterator *iter)
 		iter->current = NULL;
 	}
 }
-
-int main() {
-	return 0;
-}

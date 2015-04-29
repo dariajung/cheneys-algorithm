@@ -65,8 +65,8 @@ OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
 }
 
 int main() {
-    init_heap();
 
+    init_heap();
 
 
     cleanup();

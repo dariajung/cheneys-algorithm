@@ -14,13 +14,13 @@ LDFLAGS = -g
 
 .PHONY: all
 
-all: cheney slist
+all: cheney
 
 cheney: 
-	gcc -Wall -o cheney cheney.c
+	gcc -Wall -o cheney cheney.c slist.c
 
-slist:
-	gcc -Wall -o slist slist.c
+# slist:
+# 	gcc -Wall -o slist slist.c
 
 clean:
 	rm -f *.o *~ a.out core cheney slist

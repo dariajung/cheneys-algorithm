@@ -9,7 +9,12 @@
 #define HEAP_SIZE 100
 
 static HEAP *heap;
-OBJECT * root; // this needs to be figured out; a linked list or an array, idk
+//OBJECT * root; // this needs to be figured out; a linked list or an array, idk
+
+// head of root linked list
+static SListEntry *root_list;
+// iterator for root linked list
+static SListIterator *root_iter;
 
 /*  Assumptions: */
 /*  Same sized objects (though this is not a requirement) */
@@ -26,6 +31,10 @@ white - Unvisited, at the end of tracing, considered garbage
 /* Initializes the heap, takes a pointer to struct heap */
 void init_heap() {
     printf("Initializing heap.\n");
+
+    root_list = NULL;
+    root_iter = NULL;
+    slist_iterate(&root_list, root_iter);
 
     heap = malloc(sizeof(HEAP));
 
@@ -81,6 +90,7 @@ static void flip_spaces() {
 static void forward_to(void * address, OBJECT *obj) {
     obj->is_forwarded = 1;
     obj->car_forwarding = address;
+    obj->cdr = NULL; // is this necessary?
 }
 
 /* Copy contents of object from from_space to to_space; use memcpy? */
@@ -163,7 +173,9 @@ static void collect() {
 
     heap->_free = heap->to_space.top;
     heap->scan = heap->_free;
-    root = copy(root);
+
+    // need to figure this out too ugh
+    //root = copy(root);
     while (heap->scan < heap->_free) {
         p = heap->scan;
         children(p, list);
