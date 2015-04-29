@@ -35,7 +35,7 @@ void init_heap() {
     root_list = malloc(sizeof(SListEntry));
     root_iter = malloc(sizeof(SListIterator));
 
-    root_list = NULL;
+    //root_list = NULL;
     slist_iterate(&root_list, root_iter);
 
     heap = malloc(sizeof(HEAP));
@@ -55,12 +55,13 @@ void init_heap() {
 
     heap->memory_block_start = temp_top;
     heap->size_semi = half_space;
-    heap->scan = NULL;
-    heap->_free = NULL;
 
     // from space is the initially used semi-heap
     heap->from_space.top = temp_top;
     heap->from_space.end = temp_top + half_space;
+
+    heap->scan = NULL;
+    heap->_free = heap->from_space.top;
 
     // sanity check
     assert(heap->from_space.end - heap->from_space.top == half_space);
@@ -130,6 +131,8 @@ static void * copy(OBJECT * p) {
 // return a linked list of children of heap object
 static SListEntry * children(void * obj, SListEntry * list) {
     
+    printf("Inside children\n");
+
     // NULL object
     if (!obj) {
         return list;

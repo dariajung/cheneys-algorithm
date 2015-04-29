@@ -64,11 +64,57 @@ OBJECT * create_cons(OBJECT * car, OBJECT * cdr) {
     return obj;
 }
 
+// make sure all children are correctly found
+void test_children() {
+    OBJECT *test1, *test2, *test3, *test4;
+    SListEntry *list, *tmp; // should this list be malloc'd?
+    SListIterator *iter;
+
+    tmp = malloc(sizeof(SListEntry));
+    list = malloc(sizeof(SListEntry));
+    iter = malloc(sizeof(SListIterator));
+
+    slist_iterate(&list, iter);
+
+    test1 = create_integer(7);
+    test2 = create_integer(8);
+    test3 = create_cons(test1, test2);
+    test4 = create_cons(test3, NULL);
+
+    /* 
+        7
+        8 
+        cons cell [7, 8]
+        cons cell [[7, 8], NIL]
+
+        In total, there are 5 references,
+        7, 8, [7, 8], [[_, _], NIL], NIL
+    */
+
+    list = children((void *)test4, list);
+
+    printf("Length of list %d\n", slist_length(list));
+
+    while (slist_iter_has_more(iter) > 0) {
+        printf("hello\n");
+        // returns data of node
+        tmp = slist_iter_next(iter);
+        printf("goodbye\n");
+
+        if (tmp) {
+            slist_data(tmp);
+        } else {
+            printf("Null value\n");
+        }
+    }
+
+}
+
 int main() {
 
     init_heap();
 
-
+    test_children();
     cleanup();
     return 0;
 }
