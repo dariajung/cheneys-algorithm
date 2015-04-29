@@ -153,19 +153,38 @@ static SListEntry * children(void * obj, SListEntry * list) {
             scan += sizeof(scan);
 */
 static void collect() {
-    void * p;
+    void * p, * tmp;
+    SListEntry *list;
+    SListIterator *iterator;
+
+    list = NULL;
+    iterator = NULL;
+    slist_iterate(&list, iterator);
 
     heap->_free = heap->to_space.top;
     heap->scan = heap->_free;
     root = copy(root);
     while (heap->scan < heap->_free) {
-        for (p = heap->scan; p <= (heap->to_space.end); p += sizeof(OBJECT)) {
-            // if object there exists, copy it over
-            if ((OBJECT *)p) {
-                p = copy(p);
+        p = heap->scan;
+        children(p, list);
+
+        while (slist_iter_has_more(iterator) > 0) {
+            // returns data of node
+            tmp = slist_iter_next(iterator);
+            if ((OBJECT *)tmp) {
+                tmp = copy(tmp);
             }
         }
+        // for (p = heap->scan; p <= (heap->to_space.end); p += sizeof(OBJECT)) {
+        //     // if object there exists, copy it over
+        //     if ((OBJECT *)p) {
+        //         p = copy(p);
+        //     }
+        // }
     }
+
+    // now we are done with the list of children
+    slist_free(list);
 
     // everything has been copied over so flip semi-spaces
     flip_spaces();
