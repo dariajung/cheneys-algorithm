@@ -6,7 +6,7 @@
 #include "cheney_data_structures.h"
 #include "slist.h"
 
-#define HEAP_SIZE 100
+#define HEAP_SIZE 10
 
 static HEAP *heap;
 //OBJECT * root; // this needs to be figured out; a linked list or an array, idk
@@ -176,40 +176,51 @@ static SListEntry * children(void * obj, SListEntry * list) {
             scan += sizeof(scan);
 */
 static void collect() {
-    void * p, * tmp;
-    SListEntry *list;
+    void *p, *tmp, *root_tmp;
+    SListEntry *list, *root_list_tmp;
     SListIterator *iterator;
 
-    list = NULL;
-    iterator = NULL;
+    list = malloc(sizeof(SListEntry));
+    root_list_tmp = malloc(sizeof(SListEntry));
+
+    iterator = malloc(sizeof(SListIterator));
+ 
     slist_iterate(&list, iterator);
 
     heap->_free = heap->to_space.top;
     heap->scan = heap->_free;
 
-    // need to figure this out too ugh
-    //root = copy(root);
+    // all root objects have been copied to to-space
+    while (slist_iter_has_more(root_iter) > 0) {
+        root_tmp = slist_iter_next(root_iter);
+        root_tmp = copy(root_tmp);
+        slist_append(&root_list_tmp, root_tmp);
+    }
+
+    // now we can set the new root list, and free memory of old root list
+    slist_free(root_list);
+    root_list = root_list_tmp;
+
+    // re-intialize the root iterator
+    slist_iterate(&root_list, root_iter);
+
     while (heap->scan < heap->_free) {
         p = heap->scan;
+        // children, aka anything reachable
         children(p, list);
 
         while (slist_iter_has_more(iterator) > 0) {
-            // returns data of node
+            // returns SListValue (ie: data) of node
             tmp = slist_iter_next(iterator);
             if ((OBJECT *)tmp) {
                 tmp = copy(tmp);
             }
         }
-        // for (p = heap->scan; p <= (heap->to_space.end); p += sizeof(OBJECT)) {
-        //     // if object there exists, copy it over
-        //     if ((OBJECT *)p) {
-        //         p = copy(p);
-        //     }
-        // }
     }
 
-    // now we are done with the list of children
+    // now we are done with the list of children and the children iterator
     slist_free(list);
+    free(iterator);
 
     // everything has been copied over so flip semi-spaces
     flip_spaces();
@@ -245,7 +256,6 @@ static void * cheney_allocate(size_t size) {
 
 static void cleanup() {
     slist_free(root_list);
-    //free(root_list);
     free(root_iter);
     free(heap->memory_block_start);
     free(heap);

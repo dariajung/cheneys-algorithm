@@ -101,23 +101,12 @@ void test_children() {
         // returns data of node
         tmp = slist_iter_next(iter);
         if (tmp) {
-            printf("i dunno %d\n", ((OBJECT *)tmp)->_type);
+            printf("Type %d\n", ((OBJECT *)tmp)->_type);
+
+            if ((((OBJECT *)tmp)->_type) == 0) {
+                printf("Integer value: %d\n", ((OBJECT *)tmp)->value);
+            }
         }
-
-        // if (tmp) {
-        //     printf("lolcats\n");
-        //     printf("address %p\n", (OBJECT *)slist_data(tmp));
-
-        //     printf("lolcats2\n");
-        //     printf("INSIDE CHILDREN_TEST %p\n", data);
-
-        //     // if (((OBJECT *)data)->_type) {
-        //     //     printf("final lolz\n");
-        //     //     //if (data->_type) {
-        //     //     //printf("lolcats the final\n");
-        //     //     //}
-        //     // }
-        // }
     }
 
     printf("goodbye\n");
