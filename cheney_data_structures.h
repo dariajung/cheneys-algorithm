@@ -52,6 +52,9 @@ typedef struct semispace {
 
 /* The heap itself, broken into two semi-spaces. */
 typedef struct heap {
+    // only for cleaning up purposes to free the memory at cleanup
+    void * memory_block;
+
     SEMISPACE from_space;
     SEMISPACE to_space;
 

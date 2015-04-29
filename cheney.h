@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <errno.h>
 #include "cheney_data_structures.h"
 #include "slist.h"
 
@@ -24,7 +25,11 @@ white - Unvisited, at the end of tracing, considered garbage
 
 /* Initializes the heap, takes a pointer to struct heap */
 void init_heap() {
-    void *temp_top, *temp_end, *i;
+    printf("Initializing heap.\n");
+
+    heap = malloc(sizeof(HEAP));
+
+    void *temp_top, *temp_end;
     size_t total_space, half_space;
 
     total_space = sizeof(OBJECT) * HEAP_SIZE;
@@ -33,13 +38,11 @@ void init_heap() {
     memset(temp_top, 0, total_space);
     temp_end = temp_top + total_space;
 
-    // set everything to NULL
-    for (i = temp_top; i <= temp_end; i += sizeof(OBJECT)) {
-        i = NULL;
-    }
-
     half_space = (temp_end - temp_top) / 2.0;
+    // sanity check
+    assert(half_space == ((sizeof(OBJECT) * HEAP_SIZE) / 2.0 ));
 
+    heap->memory_block = temp_top;
     heap->size_semi = half_space;
     heap->scan = NULL;
     heap->_free = NULL;
@@ -48,9 +51,17 @@ void init_heap() {
     heap->from_space.top = temp_top;
     heap->from_space.end = temp_top + half_space;
 
+    // sanity check
+    assert(heap->from_space.end - heap->from_space.top == half_space);
+
     // on "reserve" until from space no longer has memory
     heap->to_space.top = temp_top + half_space;
     heap->to_space.end = temp_end;
+
+    // sanity check
+    assert(heap->to_space.end - heap->to_space.top == half_space);
+
+    printf("Heap initialized.\n");
 }
 
 /* flip semispaces */
@@ -106,6 +117,8 @@ static void * copy(OBJECT * p) {
 
 // linked list of children
 
+
+/* USER should call collect */
 /* trace from the root */
 /* Actually is this even necessary tho */
 /* static void trace(); */
@@ -140,10 +153,14 @@ static void collect() {
     flip_spaces();
 }
 
-/* Given a size of the object to allocate, finds a free spot in from_space */
-/* Check where the free pointer is, and if it's >= the limit of a heap, need
-    to call collector */
-/* Does it make sense to pass the whole heap? */
+/* 
+    Given a size of the object to allocate, finds a free spot in from_space 
+
+    Check where the free pointer is, and if it's >= the limit of a heap, throw an error.
+    For purposes of functional hardware compiler project, user should be able to call
+    the garbage collector at will 
+
+*/
 static void * cheney_allocate(size_t size) {
     void * tmp;
     tmp = NULL;
@@ -151,18 +168,11 @@ static void * cheney_allocate(size_t size) {
     // also check if there is no room at all?
 
     if (heap->_free >= heap->from_space.end) {
-        printf("Free pointer is past the from space semi heap's boundaries\n Calling collect.\n");
+        printf("Free pointer is past the from space semi heap's boundaries\n User should call collect.\n");
         // call collect, and then try allocating again
-        collect();
-        printf("After collection\n");
         // check if there is no room even after collection
-        if (heap->_free >= heap->from_space.end) {
-            return tmp;
-        }
-        else {
-            cheney_allocate(size);
-        }
-    // otherwise, allocate heap object where free pointer points
+        // otherwise, allocate heap object where free pointer points
+        return NULL;
     } else {
         tmp = heap->_free;
         heap->_free += size;
@@ -171,3 +181,8 @@ static void * cheney_allocate(size_t size) {
     return tmp;
 }
 
+static void cleanup() {
+    free(heap->memory_block);
+    free(heap);
+    printf("Allocated memory freed\n");
+}

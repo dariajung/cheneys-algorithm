@@ -6,7 +6,7 @@ CXXFLAGS = -g -Wall $(INCLUDES)
 
 LDFLAGS = -g
 
-# .PHONY: default
+.PHONY: cheney slist
 # default: cheney
 
 # header dependency
