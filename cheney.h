@@ -81,6 +81,9 @@ void init_heap() {
 
 /* flip semispaces */
 static void flip_spaces() {
+
+    printf("Flipping!\n");
+
     void * tmp;
 
     tmp = heap->from_space.top;
@@ -94,6 +97,9 @@ static void flip_spaces() {
 
 /* Set forwarding address from from_space to to_space */
 static void forward_to(void * address, OBJECT *obj) {
+
+    printf("Forwarding!\n");
+
     obj->is_forwarded = 1;
     obj->car_forwarding = address;
     obj->cdr = NULL; // is this necessary?
@@ -112,13 +118,18 @@ static void forward_to(void * address, OBJECT *obj) {
         return forwarding_address
 */
 static void * copy(OBJECT * p) {
+
+    printf("Copy!\n");
+
     void *new_address, *forwarding_address;
     new_address = NULL;
     forwarding_address = NULL;
 
     if (p->is_forwarded) {
+        printf("Already FORWARDED\n");
         return (p->car_forwarding);
     } else {
+        printf("Inside copy. Not forwarded yet!\n");
         // dest, src, size
         memcpy(heap->_free, p, sizeof(OBJECT));
         new_address = heap->_free;
@@ -179,6 +190,8 @@ static SListEntry * children(void * obj, SListEntry * list) {
             scan += sizeof(scan);
 */
 static void collect() {
+    printf("Collect called!\n");
+
     void *p, *tmp, *root_tmp;
     SListEntry *list, *root_list_tmp;
     SListIterator *iterator;
@@ -195,9 +208,12 @@ static void collect() {
 
     // all root objects have been copied to to-space
     while (slist_iter_has_more(root_iter) > 0) {
+        printf("Copying roots\n");
         root_tmp = slist_iter_next(root_iter);
-        root_tmp = copy(root_tmp);
-        slist_append(&root_list_tmp, root_tmp);
+        if (root_tmp) {
+            root_tmp = copy(root_tmp);
+            slist_append(&root_list_tmp, root_tmp);
+        }
     }
 
     // now we can set the new root list, and free memory of old root list
@@ -206,6 +222,8 @@ static void collect() {
 
     // re-intialize the root iterator
     slist_iterate(&root_list, root_iter);
+
+    printf("Before scanning through semiheap\n");
 
     while (heap->scan < heap->_free) {
         p = heap->scan;
@@ -227,6 +245,8 @@ static void collect() {
 
     // everything has been copied over so flip semi-spaces
     flip_spaces();
+
+    printf("Collection done!\n");
 }
 
 /* 
@@ -244,7 +264,7 @@ static void * cheney_allocate(size_t size) {
     // also check if there is no room at all?
 
     if (heap->_free >= heap->from_space.end) {
-        printf("Free pointer is past the from space semi heap's boundaries\n User should call collect.\n");
+        printf("Free pointer is past the from space semi heap's boundaries\nUser should call collect.\n");
         // call collect, and then try allocating again
         // check if there is no room even after collection
         // otherwise, allocate heap object where free pointer points

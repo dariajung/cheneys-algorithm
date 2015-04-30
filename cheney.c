@@ -75,6 +75,12 @@ void test_correct_response() {
     test6 = create_integer(2);
 
     assert(test6 == NULL);
+
+    /* Add [7, 8] cons cell to roots. This means 7 and 8 are reachable */
+    slist_append(&root_list, test3);
+
+    // call collect since we know we need to clear garbage
+    collect();
 }
 
 // make sure all children are correctly found
