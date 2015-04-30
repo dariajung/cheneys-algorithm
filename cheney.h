@@ -203,12 +203,15 @@ static void collect() {
  
     slist_iterate(&list, iterator);
 
+    // set to start of to-space
     heap->_free = heap->to_space.top;
     heap->scan = heap->_free;
 
+    printf("Free pointer: %p, Scan pointer: %p\n", heap->_free, heap->scan);
+
     // all root objects have been copied to to-space
     while (slist_iter_has_more(root_iter) > 0) {
-        printf("Copying roots\n");
+        //printf("Copying roots\n");
         root_tmp = slist_iter_next(root_iter);
         if (root_tmp) {
             root_tmp = copy(root_tmp);
@@ -225,6 +228,7 @@ static void collect() {
 
     printf("Before scanning through semiheap\n");
 
+    // DEBUG: something is going wrong here
     while (heap->scan < heap->_free) {
         p = heap->scan;
         // children, aka anything reachable
@@ -237,6 +241,9 @@ static void collect() {
                 tmp = copy(tmp);
             }
         }
+
+        // increment scan pointer
+        heap->scan += sizeof(OBJECT);
     }
 
     // now we are done with the list of children and the children iterator
