@@ -132,11 +132,38 @@ static void * copy(OBJECT * p) {
         printf("Inside copy. Not forwarded yet!\n");
         // dest, src, size
         memcpy(heap->_free, p, sizeof(OBJECT));
+
         new_address = heap->_free;
         forwarding_address = heap->_free;
         forward_to(heap->_free, p);
+
+
+        // if (p) {
+        //     if (p->_type == 0) {
+        //         printf("Before copy INT: %d\n", p->value);
+        //     } else {
+        //         printf("Before copy CONS\n");
+        //     }
+
+        //     printf("Is forwarded: %d\n", p->is_forwarded);
+        // }
+
+        // Make sure memcpy worked
+        // if ((OBJECT *)heap->_free) {
+        //     if (((OBJECT *)heap->_free)->_type == 0) {
+        //         printf("At heap->_free INT: %d\n", ((OBJECT *)heap->_free)->value);
+        //     }
+
+        //     printf("Is forwarded: %d\n", ((OBJECT *)heap->_free)->is_forwarded);
+        // }
+
+
         heap->_free += sizeof(OBJECT);
         return forwarding_address;
+    }
+
+    if (!forwarding_address) {
+        printf("Forwarding address is NULL\n");
     }
 
     return forwarding_address;
@@ -163,7 +190,7 @@ static SListEntry * children(void * obj, SListEntry * list) {
     } else if (((OBJECT *)obj)->_type == 1) {
         printf("CONS CELL: %p\n", obj);
         slist_append(&list, obj);
-        printf("AFTERWARDS\n");
+        printf("AFTER APPENDING TO LIST\n");
         children((void *)((OBJECT *)obj)->car_forwarding, list);
         children((void *)((OBJECT *)obj)->cdr, list);
     }
@@ -229,9 +256,13 @@ static void collect() {
     printf("Before scanning through semiheap\n");
 
     // DEBUG: something is going wrong here
-    while (heap->scan < heap->_free) {
+    while (heap->scan <= heap->_free) {
         p = heap->scan;
+        
         // children, aka anything reachable
+        // p should only have children if CONS cell
+        // clear out the list before passing it
+        memset((void *)list, 0, sizeof(SListEntry));
         children(p, list);
 
         while (slist_iter_has_more(iterator) > 0) {
@@ -242,9 +273,12 @@ static void collect() {
             }
         }
 
+        printf("Incrementing scan pointer\n");
         // increment scan pointer
         heap->scan += sizeof(OBJECT);
     }
+
+    printf("After while loop\n");
 
     // now we are done with the list of children and the children iterator
     slist_free(list);

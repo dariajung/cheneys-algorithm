@@ -72,6 +72,7 @@ void test_correct_response() {
     test4 = create_cons(test3, NIL);
     test5 = create_integer(18);
     
+    /* This should fail to be created */
     test6 = create_integer(2);
 
     assert(test6 == NULL);
@@ -80,6 +81,8 @@ void test_correct_response() {
     slist_append(&root_list, test3);
 
     // call collect since we know we need to clear garbage
+    // test4, test5 should be collected, though this is not necessarily
+    // a test case that makes sense, since test4 refers to test3
     collect();
 }
 
