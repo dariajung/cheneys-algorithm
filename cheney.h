@@ -9,7 +9,6 @@
 #define HEAP_SIZE 10
 
 static HEAP *heap;
-//OBJECT * root; // this needs to be figured out; a linked list or an array, idk
 
 // head of root linked list
 static SListEntry *root_list;
@@ -38,7 +37,6 @@ void init_heap() {
     memset((void *)root_list, 0, sizeof(SListEntry));
     memset((void *)root_iter, 0, sizeof(SListIterator));
 
-    //root_list = NULL;
     slist_iterate(&root_list, root_iter);
 
     heap = malloc(sizeof(HEAP));
@@ -53,6 +51,7 @@ void init_heap() {
     temp_end = temp_top + total_space;
 
     half_space = (temp_end - temp_top) / 2.0;
+
     // sanity check
     assert(half_space == ((sizeof(OBJECT) * HEAP_SIZE) / 2.0 ));
 
@@ -105,7 +104,7 @@ static void forward_to(void * address, OBJECT *obj) {
     obj->cdr = NULL; // is this necessary?
 }
 
-/* Copy contents of object from from_space to to_space; use memcpy? */
+/* Copy contents of object from from_space to to_space; use memcpy */
 /* Copy pseudocode:
     if is_forwarded(p):
         return get_forwarding_pointer(p)
@@ -256,9 +255,9 @@ static void collect() {
     printf("Before scanning through semiheap\n");
 
     // DEBUG: something is going wrong here
-    while (heap->scan <= heap->_free) {
+    while (heap->scan < heap->_free) {
         p = heap->scan;
-        
+
         // children, aka anything reachable
         // p should only have children if CONS cell
         // clear out the list before passing it
