@@ -9,25 +9,27 @@
 /*                   Cheney's Copying Algorithm                    */
 /* --------------------------------------------------------------- */
 
-/* Creates an OBJECT on the heap and returns a pointer to it,
-neither value nor (cdr, car) are set. A "null" value? Unclear how
-to represent. 
+/* ===========================================================
+Creates an OBJECT on the heap and returns a pointer to it,
+neither value nor (cdr, car) are set. 
+============================================================= */
 OBJECT * create_nil() {
-    OBJECT * obj;
-    obj = (OBJECT *) cheney_allocate(sizeof(OBJECT));
+    // OBJECT * obj;
+    // obj = (OBJECT *) cheney_allocate(sizeof(OBJECT));
 
-    if (!obj) {
-        printf("cheney_allocate failed\n");
-        return NULL;
-    }
+    // if (!obj) {
+    //     printf("cheney_allocate failed\n");
+    //     return NULL;
+    // }
 
-    obj->is_forwarded = 0;
-    obj->type = NIL;
+    // obj->is_forwarded = 0;
+    // obj->type = NIL;
 
-    return obj;
+    // return obj;
+    return NIL;
 }
 
-*/
+
 
 OBJECT * create_integer(int value) {
     OBJECT * obj;
@@ -90,7 +92,7 @@ void test_correct_response() {
 void test_children() {
     OBJECT *test1, *test2, *test3, *test4;
     SListValue *tmp;
-    SListEntry *list; // should this list be malloc'd?
+    SListEntry *list;
     SListIterator *iter;
 
     tmp = NULL;

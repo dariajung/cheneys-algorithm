@@ -1,3 +1,4 @@
+
 /*  Assumptions: */
 /*  Same sized objects (though this is not a requirement) */
 
@@ -9,8 +10,6 @@ grey - Self visited, but not descendents; nodes in work list in tospace
 white - Unvisited, at the end of tracing, considered garbage 
 
 */
-
-typedef enum {INT, CONS} type_t;
 
 /*  A heap object. */
 typedef struct object {

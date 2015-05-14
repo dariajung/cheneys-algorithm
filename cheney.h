@@ -6,26 +6,35 @@
 #include "cheney_data_structures.h"
 #include "slist.h"
 
+/* ============================================
+The size of the heap in the number of objects
+that it can hold. Though we must be cognizant 
+that since this gc scheme uses semi-heaps, the 
+active heap is only half of the HEAP_SIZE.
+=============================================== */
 #define HEAP_SIZE 10
 
 static HEAP *heap;
 
-// head of root linked list
+/* head of root linked list */
 static SListEntry *root_list;
-// iterator for root linked list
+/* iterator for root linked list */
 static SListIterator *root_iter;
 
-/*  Assumptions: */
-/*  Same sized objects (though this is not a requirement) */
+/* ======================================================================
 
-/* Cheney's Algorithm has an equivalence to the
+Assumptions:
+
+Same sized objects (though this is not a requirement)
+
+Cheney's Algorithm has an equivalence to the
 Tricoloring Abstraction
 
 black - Self and descendents visited
 grey - Self visited, but not descendents; nodes in work list in tospace
 white - Unvisited, at the end of tracing, considered garbage 
 
-*/
+===================================================================== */
 
 /* Initializes the heap, takes a pointer to struct heap */
 void init_heap() {
@@ -38,47 +47,70 @@ void init_heap() {
     memset((void *)root_iter, 0, sizeof(SListIterator));
 
     slist_iterate(&root_list, root_iter);
-
+    
+    /* ===============================================
+    Malloc() for the global pointer to *heap; 
+    outside of the scope of the toy environment 
+    ================================================== */
     heap = malloc(sizeof(HEAP));
 
     void *temp_top, *temp_end;
     size_t total_space, half_space;
 
     total_space = sizeof(OBJECT) * HEAP_SIZE;
-
+    
+    /* Allocate the memory for the "heap" */
     temp_top = malloc(total_space);
+    /* Zero out the memory that has been allocated */
     memset(temp_top, 0, total_space);
+    /* The boundary of the heap */
     temp_end = temp_top + total_space;
-
+    
+    /* The size of a semispace */
     half_space = (temp_end - temp_top) / 2.0;
 
-    // sanity check
+    /* sanity check to ensure half space is actually half the size of the heap */
     assert(half_space == ((sizeof(OBJECT) * HEAP_SIZE) / 2.0 ));
-
+    
     heap->memory_block_start = temp_top;
     heap->size_semi = half_space;
 
-    // from space is the initially used semi-heap
+    /* from space is the initially used semi-heap */
     heap->from_space.top = temp_top;
     heap->from_space.end = temp_top + half_space;
-
+    
+    /* ==========================================================
+    Doesn't really matter what these pointers are set to because 
+    they will be reset during a collection cycle to point to the
+    start of tospace 
+    ========================================================== */
     heap->scan = NULL;
     heap->_free = heap->from_space.top;
 
-    // sanity check
+    /* ==========================================================
+    Sanity check that the fromspace is correctly half the size of 
+    the total heap 
+    ========================================================== */
     assert(heap->from_space.end - heap->from_space.top == half_space);
 
-    // on "reserve" until from space no longer has memory
+    /* ==================================================
+    On "reserve" until from space no longer has memory 
+    ==================================================== */
     heap->to_space.top = temp_top + half_space;
     heap->to_space.end = temp_end;
 
-    // sanity check
+    /* ========================================================
+    Sanity check that the tospace is correctly half the size 
+    of the total heap 
+    ========================================================== */
     assert(heap->to_space.end - heap->to_space.top == half_space);
 
     printf("Heap initialized.\n");
 }
 
-/* flip semispaces */
+/* ===============
+flip semispaces 
+================= */
 static void flip_spaces() {
 
     printf("Flipping!\n");
@@ -94,7 +126,9 @@ static void flip_spaces() {
     heap->to_space.end = tmp + heap->size_semi;
 }
 
-/* Set forwarding address from from_space to to_space */
+/* ===================================================
+Set forwarding address from from_space to to_space 
+===================================================== */
 static void forward_to(void * address, OBJECT *obj) {
 
     printf("Forwarding!\n");
@@ -104,8 +138,11 @@ static void forward_to(void * address, OBJECT *obj) {
     obj->cdr = NULL; // is this necessary?
 }
 
-/* Copy contents of object from from_space to to_space; use memcpy */
-/* Copy pseudocode:
+/* =========================================================
+Copy contents of object from from_space to to_space; 
+use memcpy.
+
+Copy pseudocode:
     if is_forwarded(p):
         return get_forwarding_pointer(p)
     else:
@@ -115,7 +152,7 @@ static void forward_to(void * address, OBJECT *obj) {
         set_forwarding_address(p, alloc_pointer)
         alloc_pointer = alloc_pointer + size(p)
         return forwarding_address
-*/
+========================================================== */
 static void * copy(OBJECT * p) {
 
     printf("Copy!\n");
@@ -137,24 +174,28 @@ static void * copy(OBJECT * p) {
         forward_to(heap->_free, p);
 
 
-        // if (p) {
-        //     if (p->_type == 0) {
-        //         printf("Before copy INT: %d\n", p->value);
-        //     } else {
-        //         printf("Before copy CONS\n");
-        //     }
+        /* ==========================================================
+        Used to sanity check. 
+        Left in in case debugging is necessary. 
+        if (p) {
+            if (p->_type == 0) {
+                printf("Before copy INT: %d\n", p->value);
+            } else {
+                printf("Before copy CONS\n");
+            }
 
-        //     printf("Is forwarded: %d\n", p->is_forwarded);
-        // }
+            printf("Is forwarded: %d\n", p->is_forwarded);
+        }
 
-        // Make sure memcpy worked
-        // if ((OBJECT *)heap->_free) {
-        //     if (((OBJECT *)heap->_free)->_type == 0) {
-        //         printf("At heap->_free INT: %d\n", ((OBJECT *)heap->_free)->value);
-        //     }
+        Make sure memcpy worked
+        if ((OBJECT *)heap->_free) {
+            if (((OBJECT *)heap->_free)->_type == 0) {
+                printf("At heap->_free INT: %d\n", ((OBJECT *)heap->_free)->value);
+            }
 
-        //     printf("Is forwarded: %d\n", ((OBJECT *)heap->_free)->is_forwarded);
-        // }
+            printf("Is forwarded: %d\n", ((OBJECT *)heap->_free)->is_forwarded);
+        } 
+        ========================================================== */
 
 
         heap->_free += sizeof(OBJECT);
@@ -168,13 +209,15 @@ static void * copy(OBJECT * p) {
     return forwarding_address;
 }
 
-// return a linked list of children of heap object
+/* =======================================================
+Return a linked list of children of heap object
+========================================================== */ 
 static SListEntry * children(void * obj, SListEntry * list) {
     SListEntry *tmp;
     tmp = NULL;
     printf("Inside children\n");
 
-    // NULL object
+    /* NULL object */
     if (!obj) {
         return list;
 
@@ -199,13 +242,17 @@ static SListEntry * children(void * obj, SListEntry * list) {
 }
 
 
-/* USER should call collect */
-/* trace from the root */
-/* Actually is this even necessary tho */
-/* static void trace(); */
+/* ==========================================================
+Traditionally, the allocator calls the garbage collector.
+However, in this situation, this function call is something
+the USER calls.
 
-/* collected un-traced/white objects */
-/* collect pseudocode:
+    trace from the root
+    Actually is this even necessary tho
+    static void trace();
+
+    collected un-traced/white objects
+    collect pseudocode:
         from_space, to_space = to_space, from_space
         _free = to_space.top
         _end = _free + size_semi
@@ -214,7 +261,7 @@ static SListEntry * children(void * obj, SListEntry * list) {
             for p in children(scan):
                 p = copy(p)
             scan += sizeof(scan);
-*/
+========================================================== */
 static void collect() {
     printf("Collect called!\n");
 
@@ -229,13 +276,17 @@ static void collect() {
  
     slist_iterate(&list, iterator);
 
-    // set to start of to-space
+    /* =========================
+     set to start of to-space
+    ============================ */
     heap->_free = heap->to_space.top;
     heap->scan = heap->_free;
 
     printf("Free pointer: %p, Scan pointer: %p\n", heap->_free, heap->scan);
 
-    // all root objects have been copied to to-space
+    /* ===========================================
+    all root objects have been copied to to-space
+    ============================================= */
     while (slist_iter_has_more(root_iter) > 0) {
         //printf("Copying roots\n");
         root_tmp = slist_iter_next(root_iter);
@@ -245,22 +296,28 @@ static void collect() {
         }
     }
 
-    // now we can set the new root list, and free memory of old root list
+    /* =================================
+    now we can set the new root list, 
+    and free memory of old root list
+    =================================== */
     slist_free(root_list);
     root_list = root_list_tmp;
 
-    // re-intialize the root iterator
+    /* ==============================
+    re-intialize the root iterator
+    ================================ */
     slist_iterate(&root_list, root_iter);
 
     printf("Before scanning through semiheap\n");
 
-    // DEBUG: something is going wrong here
     while (heap->scan < heap->_free) {
         p = heap->scan;
 
-        // children, aka anything reachable
-        // p should only have children if CONS cell
-        // clear out the list before passing it
+        /* ======================================
+        children, aka anything reachable
+        p should only have children if CONS cell
+        clear out the list before passing it
+        ========================================= */ 
         memset((void *)list, 0, sizeof(SListEntry));
         children(p, list);
 
@@ -273,41 +330,49 @@ static void collect() {
         }
 
         printf("Incrementing scan pointer\n");
-        // increment scan pointer
+        /* =====================
+        increment scan pointer
+        ======================= */
         heap->scan += sizeof(OBJECT);
     }
 
     printf("After while loop\n");
 
-    // now we are done with the list of children and the children iterator
+    /* =================================================================
+    now we are done with the list of children and the children iterator
+    ==================================================================== */
     slist_free(list);
     free(iterator);
 
-    // everything has been copied over so flip semi-spaces
+    /* ==========================================================
+     everything has been copied over so flip semi-spaces
+     ========================================================== */
     flip_spaces();
 
     printf("Collection done!\n");
 }
 
-/* 
-    Given a size of the object to allocate, finds a free spot in from_space 
+/* ============================================================
+    Given a size of the object to allocate, 
+    finds a free spot in from_space.
 
-    Check where the free pointer is, and if it's >= the limit of a heap, throw an error.
-    For purposes of functional hardware compiler project, user should be able to call
-    the garbage collector at will 
-
-*/
+    Check where the free pointer is, 
+    and if it's >= the limit of a heap, throw an error.
+    For purposes of functional hardware compiler project, 
+    user should be able to call the garbage collector at will.
+============================================================== */
 static void * cheney_allocate(size_t size) {
     void * tmp;
     tmp = NULL;
 
-    // also check if there is no room at all?
-
     if (heap->_free >= heap->from_space.end) {
         printf("Free pointer is past the from space semi heap's boundaries\nUser should call collect.\n");
-        // call collect, and then try allocating again
-        // check if there is no room even after collection
-        // otherwise, allocate heap object where free pointer points
+        /* ========================================================================
+        Traditionally, this is where the allocator would call the 
+        garbage collector because memory has been exhausted. 
+        Then try allocating again; check if there is no room even after collection.
+        Otherwise, allocate heap object where free pointer points after collection.
+        ========================================================================= */
         return NULL;
     } else {
         tmp = heap->_free;
